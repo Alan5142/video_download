@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -33,6 +34,11 @@ class MyDownloadProvider with ChangeNotifier {
 
   Future<bool> _requestStoragePermission() async {
     var permiso = await Permission.storage.status;
+    // Check if android 13, if Android 13, return true.
+    final deviceInfo = await DeviceInfoPlugin().androidInfo;
+    if (deviceInfo.version.sdkInt >= 33) {
+      return true;
+    }
     if (permiso == PermissionStatus.denied) {
       await Permission.storage.request();
     }

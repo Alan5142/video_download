@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:video_downlad/db.dart';
 import 'package:video_player/video_player.dart';
 
 class MyVideoProvider with ChangeNotifier {
@@ -32,9 +32,9 @@ class MyVideoProvider with ChangeNotifier {
 
   // cargar datos
   Future<void> loadConfigs() async {
-    var _configBox = await Hive.openBox<int>("vidConfigs");
-    if (_vCont != null) {
-      int milis = _configBox.get("video_time") ?? 0;
+    var storedValue = await SqliteDb.get("video_time");
+    if (_vCont != null && storedValue != null) {
+      int milis = int.tryParse(storedValue) ?? 0;
       Duration position = Duration(milliseconds: milis);
       await _vCont!.seekTo(position);
       await _vCont!.setVolume(1);
@@ -44,10 +44,9 @@ class MyVideoProvider with ChangeNotifier {
 
   // guardar datos
   Future saveConfigs() async {
-    var _configBox = await Hive.openBox<int>("vidConfigs");
     try {
       Duration position = _vCont!.value.position;
-      await _configBox.put("video_time", position.inMilliseconds);
+      await SqliteDb.insert("video_time", position.inMilliseconds.toString());
       isSaved = true;
       notifyListeners();
     } catch (e) {
